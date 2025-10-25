@@ -20,6 +20,9 @@ with st.sidebar:
         "Choose a story style",
         ("Comedy", "Thriller", "Fairy Tale", "Sci-Fi", "Mystery", "Adventure", "Morale")
     )
+    paragraph_count = st.slider(
+        "Story length (paragraphs)", min_value=3, max_value=6, value=4
+    )
     generate_button =st.button("Generate Story", type="primary")
 
     # MAIN LOGIC
@@ -39,7 +42,9 @@ if generate_button:
                     with image_columns[i]:
                         st.image(image, use_container_width=True)
 
-                generate_story= generate_story_from_images(pil_images, story_style)
+                generate_story= generate_story_from_images(
+                    pil_images, story_style, paragraph_count
+                )
                 if "Error" in generate_story or "failed" in generate_story or"API key" in generate_story:
                     st.error(generate_story)
                 else:
@@ -49,8 +54,17 @@ if generate_button:
 
                 st.subheader("Listen to your Story:")
                 audio_file= narrate_story(generate_story)
-                if audio_file:
-                    st.audio(audio_file,format="audio/mp3")
+                if isinstance(audio_file, str):
+                    st.error(audio_file)
+                elif audio_file:
+                    audio_bytes = audio_file.getvalue()
+                    st.audio(audio_bytes,format="audio/mp3")
+                    st.download_button(
+                        "Download narration",
+                        data=audio_bytes,
+                        file_name="storyspark-story.mp3",
+                        mime="audio/mpeg",
+                    )
 
             except Exception as e:
                 st.error(f"An application  error occurred {e}")

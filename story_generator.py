@@ -18,7 +18,7 @@ genai.configure(api_key=api_key)
 MODEL = genai.GenerativeModel("gemini-2.0-flash-lite")
 
 
-def create_advanced_prompt(style: str) -> str:
+def create_advanced_prompt(style: str, paragraphs: int) -> str:
     base_prompt = f"""
     **Your Persona:** You are a friendly and engaging storyteller. Your goal is to tell a story that is fun and easy to read.
     **Your Main Goal:** Write a story in simple, clear, and modern English.
@@ -31,7 +31,7 @@ def create_advanced_prompt(style: str) -> str:
     4.  **Nationality**: Use only Indian Names,Characters, Places , Persona Etc.
     **Output Format:**
     -   **Title:** Start with a simple and clear title.
-    -   **Length:** The story must be between 4 and 5 paragraphs.
+    -   **Length:** The story must be exactly {paragraphs} paragraphs long.
     """
 
     style_instruction = ""
@@ -61,12 +61,14 @@ def _extract_story_text(response: genai.types.GenerateContentResponse) -> str:
     return "\n".join(parts).strip()
 
 
-def generate_story_from_images(images: List[Image.Image], style: str) -> str:
+def generate_story_from_images(
+    images: List[Image.Image], style: str, paragraphs: int
+) -> str:
     if not images:
         raise ValueError("At least one image is required to generate a story.")
 
     contents = [img for img in images]
-    contents.append(create_advanced_prompt(style))
+    contents.append(create_advanced_prompt(style, paragraphs))
 
     response = MODEL.generate_content(contents=contents)
     story = _extract_story_text(response)
